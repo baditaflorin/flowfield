@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>flowfield — generative flow-field art</title>
+    <meta
+      name="description"
+      content="Perlin/flow-field generative art in your browser. Tune it, seed it, export SVG/PNG. No backend, nothing leaves your device."
+    />
+    <script type="module" crossorigin src="./assets/index-C1qj7W8e.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-TQIePDyF.css">
+  </head>
+  <body>
+    <main class="stage">
+      <canvas id="canvas"></canvas>
+    </main>
+
+    <aside class="panel" id="panel">
+      <header class="panel-head">
+        <h1>flowfield</h1>
+        <button type="button" id="toggle-panel" class="ghost" aria-label="Hide controls">×</button>
+      </header>
+
+      <label class="row">
+        <span>Seed</span>
+        <input type="text" id="seed" maxlength="64" autocomplete="off" spellcheck="false" />
+      </label>
+
+      <label class="row">
+        <span>Palette</span>
+        <select id="palette"></select>
+      </label>
+
+      <label class="row">
+        <span>Particles <output id="particles-out"></output></span>
+        <input type="range" id="particles" />
+      </label>
+      <label class="row">
+        <span>Flow scale <output id="noiseScale-out"></output></span>
+        <input type="range" id="noiseScale" />
+      </label>
+      <label class="row">
+        <span>Turns <output id="turns-out"></output></span>
+        <input type="range" id="turns" />
+      </label>
+      <label class="row">
+        <span>Speed <output id="speed-out"></output></span>
+        <input type="range" id="speed" />
+      </label>
+      <label class="row">
+        <span>Length <output id="steps-out"></output></span>
+        <input type="range" id="steps" />
+      </label>
+      <label class="row">
+        <span>Line width <output id="lineWidth-out"></output></span>
+        <input type="range" id="lineWidth" />
+      </label>
+      <label class="row">
+        <span>Ink <output id="alpha-out"></output></span>
+        <input type="range" id="alpha" />
+      </label>
+
+      <div class="buttons">
+        <button type="button" id="random" class="primary">🎲 New seed</button>
+        <button type="button" id="replay">↻ Replay</button>
+      </div>
+      <div class="buttons">
+        <button type="button" id="png">⬇ PNG</button>
+        <button type="button" id="svg">⬇ SVG</button>
+        <button type="button" id="share">🔗 Copy link</button>
+      </div>
+
+      <footer class="self-ref">
+        <a id="source" href="https://github.com/baditaflorin/flowfield" target="_blank" rel="noopener"
+          >source</a
+        >
+        ·
+        <a href="https://www.paypal.com/paypalme/florinbadita" target="_blank" rel="noopener"
+          >tip ♥</a
+        >
+        · <span id="version">vdev</span>
+      </footer>
+    </aside>
+
+    <button type="button" id="show-panel" class="show-panel" aria-label="Show controls">⚙</button>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  </body>
+</html>
