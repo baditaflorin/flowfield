@@ -1,6 +1,8 @@
 // The full set of knobs that define an artwork, plus URL-hash (de)serialization
 // so a piece can be shared by link and reproduced exactly.
 
+import { clamp } from "./rng";
+
 export type Settings = {
   seed: string;
   palette: string;
@@ -60,7 +62,7 @@ export function encodeSettings(s: Settings): string {
   return p.toString();
 }
 
-const KEY_MAP: Record<string, keyof Settings> = {
+const KEY_MAP: Record<string, keyof typeof LIMITS> = {
   n: "particles",
   sc: "noiseScale",
   t: "turns",
@@ -70,7 +72,17 @@ const KEY_MAP: Record<string, keyof Settings> = {
   a: "alpha",
 };
 
-/** Parse a URL hash fragment back into settings, falling back to DEFAULTS. */
+/**
+ * Parse a URL hash fragment back into settings, falling back to DEFAULTS.
+ *
+ * Every numeric field is clamped to its `LIMITS` range. This is a hard
+ * boundary, not just UI polish: settings decoded here feed directly into
+ * `spawn()`/`simulate()` (particle-count-sized allocations and per-frame
+ * work) before the slider UI ever gets a chance to re-clamp anything, so an
+ * out-of-range value in a shared/crafted link (e.g. `#n=5000000&st=600`)
+ * would otherwise allocate millions of particles and peg the main thread for
+ * tens of seconds per frame — effectively hanging the tab.
+ */
 export function decodeSettings(hash: string): Settings {
   const clean = hash.startsWith("#") ? hash.slice(1) : hash;
   const p = new URLSearchParams(clean);
@@ -82,7 +94,8 @@ export function decodeSettings(hash: string): Settings {
     if (raw === null) continue;
     const num = Number(raw);
     if (Number.isFinite(num) && NUMERIC.includes(key)) {
-      (out[key] as number) = num;
+      const lim = LIMITS[key];
+      (out[key] as number) = clamp(num, lim.min, lim.max);
     }
   }
   return out;
