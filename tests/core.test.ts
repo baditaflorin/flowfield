@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { mulberry32, hashSeed, clamp, randomSeedToken } from "../src/rng";
 import { makeNoise2D } from "../src/noise";
 import { flowAngle, nextPoint, inBounds, simulate, type FieldOpts } from "../src/field";
-import { decodeSettings, encodeSettings, DEFAULTS } from "../src/settings";
+import { decodeSettings, encodeSettings, DEFAULTS, LIMITS } from "../src/settings";
 import { polylinesToSvg } from "../src/svg";
 import { paletteById, PALETTES, colorFor } from "../src/palettes";
 
@@ -114,6 +114,38 @@ describe("settings", () => {
 
   it("ignores empty hash", () => {
     expect(decodeSettings("").seed).toBe(DEFAULTS.seed);
+  });
+
+  it("clamps out-of-range numeric fields from a crafted/shared link instead of hanging the sim", () => {
+    // A link like #n=5000000&st=600 previously bypassed the slider limits
+    // entirely: spawn()/render() would allocate and animate millions of
+    // particles, pegging the main thread for tens of seconds per frame.
+    const d = decodeSettings("#n=5000000&sc=999&t=999&sp=999&st=999999&lw=999&a=999");
+    expect(d.particles).toBe(LIMITS.particles.max);
+    expect(d.noiseScale).toBe(LIMITS.noiseScale.max);
+    expect(d.turns).toBe(LIMITS.turns.max);
+    expect(d.speed).toBe(LIMITS.speed.max);
+    expect(d.steps).toBe(LIMITS.steps.max);
+    expect(d.lineWidth).toBe(LIMITS.lineWidth.max);
+    expect(d.alpha).toBe(LIMITS.alpha.max);
+  });
+
+  it("clamps below-range numeric fields (negative/zero) up to the minimum", () => {
+    const d = decodeSettings("#n=-100&sc=-1&t=0&sp=-5&st=0&lw=0&a=-1");
+    expect(d.particles).toBe(LIMITS.particles.min);
+    expect(d.noiseScale).toBe(LIMITS.noiseScale.min);
+    expect(d.turns).toBe(LIMITS.turns.min);
+    expect(d.speed).toBe(LIMITS.speed.min);
+    expect(d.steps).toBe(LIMITS.steps.min);
+    expect(d.lineWidth).toBe(LIMITS.lineWidth.min);
+    expect(d.alpha).toBe(LIMITS.alpha.min);
+  });
+
+  it("still round-trips an in-range value exactly (no over-clamping)", () => {
+    const s = { ...DEFAULTS, particles: 1500, steps: 300 };
+    const decoded = decodeSettings("#" + encodeSettings(s));
+    expect(decoded.particles).toBe(1500);
+    expect(decoded.steps).toBe(300);
   });
 });
 
